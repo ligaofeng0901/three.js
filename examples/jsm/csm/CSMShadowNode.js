@@ -14,6 +14,7 @@ import { viewZToOrthographicDepth, reference, uniform, float, vec4, vec2, If, Fn
 const _cameraToLightMatrix = new Matrix4();
 const _lightSpaceFrustum = new CSMFrustum();
 const _center = new Vector3();
+const _size = new Vector3();
 const _bbox = new Box3();
 const _uniformArray = [];
 const _logArray = [];
@@ -403,10 +404,20 @@ class CSMShadowNode extends Node {
 			}
 
 			_bbox.getCenter( _center );
-			_center.z = _bbox.max.z + this.lightMargin;
+			_bbox.getSize( _size );
+			_center.z = _bbox.max.z;
 			_center.x = Math.floor( _center.x / texelWidth ) * texelWidth;
 			_center.y = Math.floor( _center.y / texelHeight ) * texelHeight;
 			_center.applyMatrix4( _lightOrientationMatrix );
+
+			const boxScale = 1.2;
+			shadowCam.top = _size.y / 2 * boxScale;
+			shadowCam.bottom = - _size.y / 2 * boxScale;
+			shadowCam.left = - _size.x / 2 * boxScale;
+			shadowCam.right = _size.x / 2 * boxScale;
+			shadowCam.far = _size.z * boxScale;
+			shadowCam.updateProjectionMatrix();
+
 
 			lwLight.position.copy( _center );
 			lwLight.target.position.copy( _center );
